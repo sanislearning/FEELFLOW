@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FeelFlow - Mood Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div style="text-align: center;">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="FeelFlow Logo" width="150">
+        <h1>FeelFlow - Your Mental Health Companion</h1>
+        <p>Track your mental well-being with ease.</p>
+    </div>
+    
+    <!-- Add Login Button -->
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="{{ url_for('login') }}" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">Login</a>
+    </div>
+    
+    <h2>How Are You Feeling Today?</h2>
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <form action="/add_mood" method="POST" style="display: flex; gap: 20px;">
+            <button type="submit" name="rating" value="1" style="border: none; background: none; font-size: 4rem; cursor: pointer;">😢</button>
+            <button type="submit" name="rating" value="2" style="border: none; background: none; font-size: 4rem; cursor: pointer;">😟</button>
+            <button type="submit" name="rating" value="3" style="border: none; background: none; font-size: 4rem; cursor: pointer;">😐</button>
+            <button type="submit" name="rating" value="4" style="border: none; background: none; font-size: 4rem; cursor: pointer;">😊</button>
+            <button type="submit" name="rating" value="5" style="border: none; background: none; font-size: 4rem; cursor: pointer;">😁</button>
+        </form>
+    </div>
+
+    <!-- Optional AJAX for emoji interaction (if needed) -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".emoji").forEach(emoji => {
+                emoji.addEventListener("click", function () {
+                    let rating = this.getAttribute("data-rating");
+
+                    fetch("/submit_mood", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ rating: rating })
+                    })
+                    .then(response => response.json())
+                    .then(data => console.log(data))
+                    .catch(error => console.error("Error:", error));
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
