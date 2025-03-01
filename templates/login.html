@@ -3,18 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FeelFlow - Login</title>
+    <title>Journal It</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login to FeelFlow</h2>
-        <form action="{{ url_for('login') }}" method="post">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
-        <a href="{{ url_for('home') }}">Back to Home</a>
+    <div class="container">
+        <img class="logo" src="static/icon.png" alt="App Icon">
+        <div class="title-container">
+            <h1 class="title">Journal It</h1>
+        </div>
+        <h2 class="subtitle">Your personal day tracker</h2>
+
+        <div class="login-box">
+            <label for="username" class="label">Username:</label>
+            <input type="text" id="username" class="input-box">
+
+            <label for="password" class="label">Password:</label>
+            <input type="password" id="password" class="input-box">
+
+            <button class="sign-in">Sign In</button>
+            <p class="create-account">Create an account</p>
+        </div>
     </div>
 </body>
 </html>
