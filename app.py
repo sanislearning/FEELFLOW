@@ -23,6 +23,13 @@ class User(db.Model):
     def checkpassword(self, password):
         return check_password_hash(self.password_hash, password)  # Use self.password_hash instead of self.password
 
+class Mood(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), db.ForeignKey('user.username'), nullable=False)
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    mood = db.Column(db.Integer, nullable=False)
+
+    __table_args__ = (db.UniqueConstraint('username', 'date', name='unique_user_date'),)  # Ensures one entry per day
 
 
 @app.route('/')
@@ -54,8 +61,16 @@ def login():
 @app.route('/dashboard')
 def dashboard():
     if 'username' in session:
-        return render_template('dashboard.html', username=session['username'])
+        today = datetime.utcnow().date()
+        existing_mood = Mood.query.filter_by(username=session['username'], date=today).first()
+
+        if existing_mood:  # If the user already submitted their mood today
+            return render_template('dashboard.html', username=session['username'])
+        else:
+            return redirect(url_for('mood_rating'))  # Redirect to mood rating page
+
     return redirect(url_for('index'))
+
 
 
 # REGISTER
@@ -80,6 +95,40 @@ def logout():
     if "username" in session:
         session.pop('username', None)
         return redirect(url_for('index'))
+    
+
+@app.route('/mood_rating', methods=['GET', 'POST'])
+def mood_rating():
+    if 'username' not in session:
+        return redirect(url_for('index'))  # If not logged in, go to home
+
+    if request.method == 'POST':
+        mood = request.form['mood']
+        today = datetime.utcnow().date()
+
+        # Check if the user has already submitted a mood today
+        existing_mood = Mood.query.filter_by(username=session['username'], date=today).first()
+        if not existing_mood:
+            new_mood = Mood(username=session['username'], date=today, mood=mood)
+            db.session.add(new_mood)
+            db.session.commit()
+
+        return redirect(url_for('dashboard'))  # Redirect to dashboard after submitting
+
+    return render_template('moodrating.html')
+
+@app.route('/journal',methods=['GET','POST']) 
+def journal():
+    return render_template('journal.html')
+
+
+@app.route('/academic',methods=['GET','POST'])
+def academic():
+    return render_template('academic.html')
+
+
+
+
 
 if __name__ == '__main__':
     with app.app_context():
