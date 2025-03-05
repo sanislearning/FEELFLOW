@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
+from flask import flash
 
 app = Flask(__name__)
 
@@ -43,7 +44,7 @@ def index():
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':  # Handle login submission
+    if request.method == 'POST':  
         username = request.form['username']
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
@@ -52,10 +53,10 @@ def login():
             session['username'] = username
             return redirect(url_for('dashboard'))
         else:
-            return render_template('login.html', error="Invalid username or password.")  
+            flash("Invalid username or password.", "error")  # Flash error message
+            return redirect(url_for('login'))  # Redirect instead of re-rendering
 
-    return render_template('login.html')  # Fix: Show `login.html` for GET requests
-  # Ensure the function always returns a response
+    return render_template('login.html')  
   # Renders the login page when accessed with GET
 # DASHBOARD
 @app.route('/dashboard')
@@ -80,14 +81,22 @@ def register():
         username = request.form['username']
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
+        
         if user:
-            return render_template('register.html', error="User already exists!")  
+            flash("User already exists! Please sign in.", "error")  # Flash alert
+            return redirect(url_for('login'))  # Redirect to login
+        
         else:
             new_user = User(username=username)
             new_user.setpassword(password)
             db.session.add(new_user)
             db.session.commit()
-    return render_template('register.html')  # Return register page for GET requests
+            flash("Registration successful! Please log in.", "success")  # Flash alert
+            return redirect(url_for('index'))  # Redirect to index
+
+    return render_template('register.html')
+
+  # Return register page for GET requests
 
 # LOGOUT
 @app.route('/logout')
@@ -117,9 +126,20 @@ def mood_rating():
 
     return render_template('moodrating.html')
 
-@app.route('/journal',methods=['GET','POST']) 
+@app.route('/journal', methods=['GET'])
 def journal():
-    return render_template('journal.html')
+    if "username" not in session:
+        return redirect(url_for("index"))
+
+    user = session["username"]
+
+    # Fetch login dates for the current user
+    logged_in_dates = [
+        entry.date.strftime("%Y-%m-%d") for entry in Mood.query.filter_by(username=user).all()
+    ]
+    return render_template("journal.html", logged_in_dates=logged_in_dates)
+
+
 
 
 @app.route('/academic',methods=['GET','POST'])

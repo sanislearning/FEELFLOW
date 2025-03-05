@@ -3,9 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Journal</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='journal.css') }}">
 </head>
 <body>
-    Daily journal
+    <button id="theme-toggle">Toggle Theme</button>
+
+
+    <a href="{{ url_for('dashboard') }}" class="back-button">⬅ Back to Dashboard</a>
+
+    <div class="journal-container">
+        <!-- Sidebar for Streaks -->
+        <div class="streak-container">
+            <button id="prev-month">◀</button>
+            <span id="current-month"></span>
+            <button id="next-month">▶</button>
+            <div id="calendar"></div>
+        </div>
+
+        <!-- Journal Entry Area -->
+        <div class="journal-entry">
+            <textarea id="entry-box" placeholder="Write your thoughts here..."></textarea>
+            <button id="save-entry">Save Entry</button>
+        </div>
+    </div>
+
+    <!-- Pass data correctly from Flask to JavaScript -->
+    <script>
+        let loggedInDates = {{ logged_in_dates | tojson | safe }};
+        console.log("Logged-in Dates from Flask:", loggedInDates); // Debugging
+    </script>
+    
+    <script src="{{ url_for('static', filename='js/journal.js') }}"></script>
+
 </body>
 </html>

@@ -1,23 +1,24 @@
 /* Full-page background animation with enhanced Catppuccin colors */
+/* Full-page background animation with enhanced Catppuccin colors */
 body {
     height: 100vh;
     margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(45deg, #1e1e2e, #89b4fa, #f5c2e7, #b4befe, #cba6f7);
-    background-size: 500% 500%;
-    animation: gradientAnimation 10s ease infinite;
+    background: linear-gradient(45deg, #8839ef, #89b4fa, #cba6f7, #f5e0dc);
+    background-size: 300% 300%;
+    animation: gradientAnimation 8s infinite linear;
 }
+
 
 /* Smooth gradient animation */
 @keyframes gradientAnimation {
     0% { background-position: 0% 50%; }
-    25% { background-position: 50% 100%; }
     50% { background-position: 100% 50%; }
-    75% { background-position: 50% 0%; }
-    100% { background-position: 0% 50%; }
+    100% { background-position: 0% 50%; } /* Loops back smoothly */
 }
+
 
 /* Glassmorphism button */
 .login-btn {

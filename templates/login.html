@@ -3,49 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Journal It</title>
+    <title>FEELFLOW</title>
+    
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
 </head>
 <body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-messages">
+      {% for category, message in messages %}
+        <div class="flash-message {{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+
     <div class="container">
-        <img class="logo" src="static/icon.png" alt="App Icon">
+        <img class="logo" src="{{ url_for('static', filename='icon.png') }}" alt="App Icon">
+        
         <div class="title-container">
-            <h1 class="title">Journal It</h1>
+            <h1 class="title">FEELFLOW</h1>
         </div>
         <h2 class="subtitle">Your personal day tracker</h2>
 
         <div class="login-box">
-            <form id="auth-form" action="{{url_for('login')}}" method="POST">
+            <form id="auth-form" action="{{ url_for('login') }}" method="POST">
                 <label for="username" class="label">Username:</label>
-                <input type="text" id="username" name="username" class="input-box">
+                <input type="text" id="username" name="username" class="input-box" required>
 
                 <label for="password" class="label">Password:</label>
-                <input type="password" id="password" name="password" class="input-box">
+                <input type="password" id="password" name="password" class="input-box" required>
 
-                <button type="submit" class="sign-in" onclick="setActionForm('login')">Sign In</button>
+                <button type="submit" class="sign-in">Sign In</button>
             </form>
-            <button type="button" class="create-account" onclick="setActionForm('register')">Create an account</button>
+
+            <!-- Fixed Create Account Button -->
+            <button type="button" class="create-account" onclick="window.location.href='{{ url_for('register') }}'">
+                Create an account
+            </button>
         </div>
     </div>
-    <script>
-        function setActionForm(action) {
-            var form = document.getElementById('auth-form');  // Fix: Select the form
-            if (action === 'login') {
-                form.action = "{{ url_for('login') }}";
-                form.method = "POST";
-            } else {
-                form.action = "{{ url_for('register') }}";
-                form.method = "POST";
-            }
-            form.submit();  // Fix: Submit the form after setting action
-        }
-    </script>
-    
 </body>
 </html>
-
