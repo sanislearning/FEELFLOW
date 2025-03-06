@@ -62,15 +62,10 @@ def login():
 @app.route('/dashboard')
 def dashboard():
     if 'username' in session:
-        today = datetime.utcnow().date()
-        existing_mood = Mood.query.filter_by(username=session['username'], date=today).first()
-
-        if existing_mood:  # If the user already submitted their mood today
-            return render_template('dashboard.html', username=session['username'])
-        else:
-            return redirect(url_for('mood_rating'))  # Redirect to mood rating page
-
+        return render_template('dashboard.html', username=session['username'])
     return redirect(url_for('index'))
+
+
 
 
 
@@ -120,11 +115,15 @@ def mood_rating():
         if not existing_mood:
             new_mood = Mood(username=session['username'], date=today, mood=mood)
             db.session.add(new_mood)
-            db.session.commit()
-
+        else:
+            existing_mood.mood = mood  # **Update existing mood**
+        
+        db.session.commit()
         return redirect(url_for('dashboard'))  # Redirect to dashboard after submitting
 
-    return render_template('moodrating.html')
+    return render_template('moodrating.html')  # **Always show the page**
+
+
 
 @app.route('/journal', methods=['GET'])
 def journal():
