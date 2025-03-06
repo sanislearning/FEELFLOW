@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - FEELFLOW</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='register.css') }}">
+
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">FEELFLOW</h1>
+        <h2 class="subtitle">Create your account</h2>
+
+        <div class="login-box">
+            <form action="{{ url_for('register') }}" method="POST">
+                <label for="username" class="label">Username:</label>
+                <input type="text" id="username" name="username" class="input-box" required>
+
+                <label for="password" class="label">Password:</label>
+                <input type="password" id="password" name="password" class="input-box" required>
+
+                <button type="submit" class="sign-in">Register</button>
+            </form>
+            <p>Already have an account? <a href="{{ url_for('login') }}">Sign in</a></p>
+        </div>
+    </div>
+</body>
+</html>
