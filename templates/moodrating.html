@@ -26,7 +26,6 @@
             --border: #cccccc;
         }
 
-        /* Apply global styles */
         html, body {
             margin: 0;
             padding: 0;
@@ -37,7 +36,6 @@
             padding-top: 20px;
         }
 
-        /* Back Button - Positioned at Top Left */
         .back-button {
             position: absolute;
             top: 10px;
@@ -55,7 +53,6 @@
             background-color: var(--muted);
         }
 
-        /* Mood buttons */
         .mood-buttons {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -80,16 +77,20 @@
             background-color: var(--highlight);
             color: var(--bg);
         }
+
+        #chart-container {
+            max-width: 600px;
+            margin: 30px auto;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Back to Dashboard Button -->
     <a href="{{ url_for('dashboard') }}" class="back-button">⬅ Back to Dashboard</a>
 
     <h2>How are you feeling today?</h2>
 
-    <form method="POST" action="{{ url_for('mood_rating') }}">
+    <form id="moodForm" method="POST" action="{{ url_for('mood_rating') }}">
         <div class="mood-buttons">
             <button type="submit" name="mood" value="10"> 🎉 Ecstatic</button>
             <button type="submit" name="mood" value="9"> 🤩 Thrilled</button>

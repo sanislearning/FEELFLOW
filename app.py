@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from flask import flash
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 
@@ -12,6 +13,7 @@ app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+migrate = Migrate(app, db)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -29,8 +31,9 @@ class Mood(db.Model):
     username = db.Column(db.String(80), db.ForeignKey('user.username'), nullable=False)
     date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
     mood = db.Column(db.Integer, nullable=False)
+    diary_entry = db.Column(db.Text, nullable=True)  # New column for journal entry
 
-    __table_args__ = (db.UniqueConstraint('username', 'date', name='unique_user_date'),)  # Ensures one entry per day
+    __table_args__ = (db.UniqueConstraint('username', 'date', name='unique_user_date'),)
 
 
 @app.route('/')
@@ -61,11 +64,19 @@ def login():
 # DASHBOARD
 @app.route('/dashboard')
 def dashboard():
-    if 'username' in session:
-        return render_template('dashboard.html', username=session['username'])
-    return redirect(url_for('index'))
-
-
+    if 'username' not in session:
+        return redirect(url_for('index'))
+    
+    user = session['username']
+    today = datetime.utcnow().date()
+    
+    # Check if mood entry exists for today
+    existing_mood = Mood.query.filter_by(username=user, date=today).first()
+    
+    if not existing_mood:
+        return redirect(url_for('mood_rating'))  # Redirect to mood entry page if missing
+    
+    return render_template('dashboard.html', username=user)
 
 
 
@@ -138,6 +149,48 @@ def journal():
     ]
     return render_template("journal.html", logged_in_dates=logged_in_dates)
 
+
+
+
+@app.route('/save_entry', methods=['POST'])
+def save_entry():
+    if 'username' not in session:
+        return jsonify({"success": False, "message": "User not logged in"}), 401
+
+    data = request.get_json()
+    entry_text = data.get("entry")
+    today = datetime.utcnow().date()
+    user = session["username"]
+
+    # Check if there's already an entry for today
+    mood_entry = Mood.query.filter_by(username=user, date=today).first()
+
+    if mood_entry:
+        if mood_entry.diary_entry is None:
+            mood_entry.diary_entry = entry_text  # Set it to the new entry instead of trying +=
+        else:
+            mood_entry.diary_entry += f"\n{entry_text}"  # Append if it's not None
+
+    db.session.commit()
+    return jsonify({"success": True, "message": "Diary entry saved!"})
+
+
+
+
+# @app.route('/mood_data')
+# def mood_data():
+#     if 'username' not in session:
+#         return jsonify([])  # Return empty data if user is not logged in
+    
+#     user = session['username']
+#     mood_entries = Mood.query.filter_by(username=user).order_by(Mood.date.asc()).all()
+
+#     mood_data = [
+#         {"date": entry.date.strftime("%Y-%m-%d"), "mood": entry.mood}
+#         for entry in mood_entries
+#     ]
+    
+#     return jsonify(mood_data)  # Return JSON data for the chart
 
 
 
