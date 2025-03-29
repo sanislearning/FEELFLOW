@@ -3,9 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Academics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='academic.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    academics?
+    <!-- Back Button Fixed at Top Left -->
+    <a href="{{ url_for('dashboard') }}" class="back-button">← Back to Dashboard</a>
+
+    <!-- New Flexbox Layout -->
+    <div class="academic-container">
+        <!-- Left Side: Marks Entry -->
+        <div class="marks-container">
+            <h2>Enter Subject Marks</h2>
+            <form action="{{ url_for('academic') }}" method="post">
+                <label for="subject">Subject:</label>
+                <input type="text" id="subject" name="subject" required>
+
+                <label for="marks">Marks:</label>
+                <input type="number" id="marks" name="marks" required min="0" max="100">
+
+                <button type="submit">Save</button>
+            </form>
+        </div>
+
+        <!-- Right Side: Chart -->
+        <div class="chart-container">
+            <h2>Marks Trend</h2>
+            <canvas id="marksChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        async function fetchMarks() {
+            try {
+                const response = await fetch("{{ url_for('get_marks_data') }}");
+                const data = await response.json();
+                renderChart(data);
+            } catch (error) {
+                console.error("Error fetching marks data:", error);
+            }
+        }
+
+        function getRandomColor() {
+            return `hsl(${Math.random() * 360}, 70%, 60%)`;
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('marksChart').getContext('2d');
+            const datasets = [];
+
+            Object.keys(data).forEach(subject => {
+                const subjectData = data[subject];
+                const dates = subjectData.map(entry => entry.date);
+                const marks = subjectData.map(entry => entry.marks);
+
+                datasets.push({
+                    label: subject,
+                    data: marks,
+                    borderColor: getRandomColor(),
+                    fill: false,
+                    tension: 0.2
+                });
+            });
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Object.values(data).flatMap(sub => sub.map(entry => entry.date)),
+                    datasets: datasets
+                },
+                options: {
+                    scales: {
+                        x: { display: false }, // Hides x-axis labels
+                        y: { title: { display: true, text: 'Marks' }, beginAtZero: true, max: 100 }
+                    }
+                }
+            });
+        }
+
+        fetchMarks();
+    </script>
 </body>
 </html>

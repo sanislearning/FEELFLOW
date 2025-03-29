@@ -4,6 +4,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from flask import flash
 from flask_migrate import Migrate
+import sqlite3
+
+db_path = r"C:\Users\HP\Documents\Projects\FEELFLOW\instance\users.db"
 
 app = Flask(__name__)
 
@@ -34,6 +37,14 @@ class Mood(db.Model):
     diary_entry = db.Column(db.Text, nullable=True)  # New column for journal entry
 
     __table_args__ = (db.UniqueConstraint('username', 'date', name='unique_user_date'),)
+
+
+class Academic(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), db.ForeignKey('user.username'), nullable=False)
+    subject = db.Column(db.String(100), nullable=False)
+    marks = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
 
 
 @app.route('/')
@@ -177,29 +188,60 @@ def save_entry():
 
 
 
-# @app.route('/mood_data')
-# def mood_data():
-#     if 'username' not in session:
-#         return jsonify([])  # Return empty data if user is not logged in
-    
-#     user = session['username']
-#     mood_entries = Mood.query.filter_by(username=user).order_by(Mood.date.asc()).all()
-
-#     mood_data = [
-#         {"date": entry.date.strftime("%Y-%m-%d"), "mood": entry.mood}
-#         for entry in mood_entries
-#     ]
-    
-#     return jsonify(mood_data)  # Return JSON data for the chart
-
-
-
-@app.route('/academic',methods=['GET','POST'])
+@app.route('/academic', methods=['GET', 'POST'])
 def academic():
+    if 'username' not in session:
+        return redirect(url_for('index'))
+
+    user = session['username']
+
+    if request.method == 'POST':
+        subject = request.form.get('subject')
+        marks = request.form.get('marks')
+
+        if not subject or not marks.isdigit():
+            # flash("Invalid input. Please enter a valid subject and marks.", "error")
+            return redirect(url_for('academic'))
+
+        marks = int(marks)  # Convert to integer
+        today = datetime.utcnow().date()  # Get today's date
+
+        # Check if an entry already exists for this subject and date
+        existing_entry = Academic.query.filter_by(username=user, subject=subject, date=today).first()
+
+        if existing_entry:
+            existing_entry.marks = marks  # Update marks
+        else:
+            new_entry = Academic(username=user, subject=subject, marks=marks, date=today)
+            db.session.add(new_entry)
+
+        db.session.commit()
+        # flash("Marks updated successfully!" if existing_entry else "Marks added successfully!", "success")
+        return redirect(url_for('academic'))
+
     return render_template('academic.html')
 
+from db_utils import get_marks
 
+@app.route('/get_marks', methods=['GET'])
+def get_marks_data():
+    if 'username' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
 
+    user = session['username']
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # Get all subjects for the user
+    cursor.execute("SELECT DISTINCT subject FROM academic WHERE username = ?", (user,))
+    subjects = [row[0] for row in cursor.fetchall()]
+    
+    conn.close()
+
+    # Fetch marks for each subject
+    data = {subject: get_marks(user, subject) for subject in subjects}
+
+    return jsonify(data)
 
 
 if __name__ == '__main__':
