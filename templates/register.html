@@ -21,12 +21,22 @@
             <form action="{{ url_for('register') }}" method="POST">
                 <label for="username" class="label">Username:</label>
                 <input type="text" id="username" name="username" class="input-box" required>
-
+            
+                <label for="email" class="label">Email:</label>
+                <input type="email" id="email" name="email" class="input-box" required>
+            
+                <label for="trusted_email" class="label">Trusted Person's Email:</label>
+                <input type="email" id="trusted_email" name="trusted_email" class="input-box" required>
+            
+                <label for="phone" class="label">Phone Number:</label>
+                <input type="tel" id="phone" name="phone" class="input-box" required>
+            
                 <label for="password" class="label">Password:</label>
                 <input type="password" id="password" name="password" class="input-box" required>
-
+            
                 <button type="submit" class="sign-in">Register</button>
             </form>
+            
             <p>Already have an account? <a href="{{ url_for('login') }}">Sign in</a></p>
         </div>
     </div>
