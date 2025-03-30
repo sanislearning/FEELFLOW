@@ -3,45 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f4;
-        }
-        .container {
-            text-align: center;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <title>Feelflow Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h2>Welcome, {{ username }}</h2>
-        <button onclick="location.href='{{ url_for('journal') }}'">📖 Journal</button>
-        <button onclick="location.href='{{ url_for('academic') }}'">📊 Academic Reports</button>
-        <br>
-        <button onclick="location.href='{{ url_for('logout') }}'">🚪 Logout</button>
-        <button onclick="location.href='{{ url_for('mood_rating') }}'">🌡️ Update Mood</button>
 
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Feelflow</h2>
+        <a href="{{ url_for('journal') }}">📖 Journal</a>
+        <a href="{{ url_for('academic') }}">📊 Academics</a>
+        <a href="{{ url_for('mood_rating') }}">😊 Mood Tracker</a>
+        <a href="{{ url_for('chatbot') }}">💬 Chatbot</a>
+        <a href="{{ url_for('logout') }}" class="logout-button">🚪 Logout</a>
     </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1 id="quote"></h1>
+        <p id="author"></p>
+    </div>
+
+    <script>
+function typeText(element, text, speed = 40) {
+    let i = 0;
+    element.innerHTML = ""; // Clear previous text
+
+    function typing() {
+        if (i < text.length) {
+            element.innerHTML += text[i];
+            i++;
+            setTimeout(typing, speed);
+        }
+    }
+    typing();
+}
+
+function typeText(element, text, speed = 40) {
+    let i = 0;
+    element.innerHTML = ""; // Clear previous text
+
+    function typing() {
+        if (i < text.length) {
+            element.innerHTML += text[i];
+            i++;
+            setTimeout(typing, speed);
+        }
+    }
+    typing();
+}
+
+async function fetchQuote() {
+    try {
+        // Load the quotes JSON file
+        let response = await fetch("/static/quotes.json"); // Adjust path if needed
+        if (!response.ok) throw new Error("Failed to load local quotes file.");
+
+        let quotes = await response.json();
+        if (!quotes || quotes.length === 0) throw new Error("No quotes found.");
+
+        // Filter out long quotes (max 150 characters)
+        let shortQuotes = quotes.filter(q => q.Quote.length <= 150);
+
+        // If no short quotes are available, use a default fallback
+        let randomQuote = shortQuotes.length > 0 
+            ? shortQuotes[Math.floor(Math.random() * shortQuotes.length)] 
+            : { Quote: "Keep it simple, keep it smart.", Author: "Unknown" };
+
+        // Display the quote
+        const quoteText = `"${randomQuote.Quote}"`;
+        const quoteAuthor = `- ${randomQuote.Author}`;
+
+        typeText(document.getElementById("quote"), quoteText, 20);
+        setTimeout(() => typeText(document.getElementById("author"), quoteAuthor, 20), quoteText.length * 20);
+    } catch (error) {
+        console.error("Error loading quotes:", error);
+        typeText(document.getElementById("quote"), "Failed to load quote. Try again later.", 20);
+        document.getElementById("author").innerHTML = "";
+    }
+}
+
+// Fetch a quote on page load
+window.onload = fetchQuote;
+
+</script>
+
 </body>
 </html>

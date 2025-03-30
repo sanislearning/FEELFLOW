@@ -1,0 +1,72 @@
+/* Catppuccin Mocha Theme - Adjusted */
+:root {
+    --bg: #1e1e2e; 
+    --fg: #cdd6f4;
+    --sidebar-bg: #313244; 
+    --sidebar-fg: #bac2de;
+    --sidebar-hover: #f5c2e7;
+    --text-primary: #f2cdcd;
+}
+
+/* Global Styles */
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: var(--bg);
+    color: var(--fg);
+    display: flex;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 220px;
+    background-color: var(--sidebar-bg);
+    padding: 20px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar h2 {
+    text-align: center;
+    color: var(--sidebar-hover);
+}
+
+.sidebar a {
+    text-decoration: none;
+    color: var(--sidebar-fg);
+    padding: 10px;
+    margin: 5px 0;
+    display: block;
+    background-color: var(--bg);
+    border-radius: 5px;
+    text-align: center;
+}
+
+.sidebar a:hover {
+    background-color: var(--sidebar-hover);
+    color: var(--bg);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2em;
+    color: var(--text-primary);
+    max-width: 70%;
+}
+
+p {
+    font-size: 1.2em;
+    color: var(--fg);
+    margin-top: 10px;
+}

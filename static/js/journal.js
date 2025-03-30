@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const nextBtn = document.getElementById("next-month");
     const themeToggle = document.getElementById("theme-toggle");
     const root = document.documentElement;
+    const saveEntryBtn = document.getElementById("save-entry");
+    const entryBox = document.getElementById("entry-box");
 
     let currentDate = new Date();
 
@@ -34,7 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // Format date as YYYY-MM-DD
             const dateString = `${year}-${(month + 1).toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
 
-            // Mark logged-in days (assuming loggedInDates is defined somewhere)
+            // Mark logged-in days
             if (typeof loggedInDates !== "undefined" && loggedInDates.includes(dateString)) {
                 dayDiv.classList.add("logged-in");
             }
@@ -83,4 +85,33 @@ document.addEventListener("DOMContentLoaded", function () {
     themeToggle.addEventListener("click", toggleTheme);
 
     renderCalendar();
+
+    // Save Journal Entry Function
+    saveEntryBtn.addEventListener("click", function () {
+        const entryText = entryBox.value.trim();
+
+        if (!entryText) {
+            alert("Entry cannot be empty!");
+            return;
+        }
+
+        fetch("/save_entry", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ entry: entryText }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                setTimeout(() => entryBox.focus(), 100); // Refocus after alert
+                entryBox.value = ""; 
+            } else {
+                alert("Error saving entry: " + data.message);
+            }
+        })
+        .catch(error => console.error("Error:", error));
+        
+    });
 });

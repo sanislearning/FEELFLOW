@@ -27,6 +27,43 @@ html, body {
     color: var(--fg);
 }
 
+/* Position Back Button on the left */
+.back-button {
+    display: inline-block;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 8px 12px;
+    background-color: var(--border);
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 16px;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.back-button:hover {
+    background-color: var(--muted);
+}
+
+/* Position Theme Toggle at the top-right */
+#theme-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 8px 12px;
+    background-color: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#theme-toggle:hover {
+    background-color: var(--highlight);
+}
+
 /* Layout container */
 .journal-container {
     display: flex;
@@ -34,7 +71,7 @@ html, body {
     justify-content: flex-start; /* Align to the left */
     align-items: flex-start;
     flex-wrap: wrap;
-    padding: 20px;
+    padding: 60px 20px 20px; /* Added top padding to prevent overlap */
 }
 
 /* Streak Section */
@@ -115,21 +152,4 @@ button {
 button:hover {
     background-color: var(--highlight);
     color: var(--bg);
-}
-
-/* Back Button */
-.back-button {
-    display: inline-block;
-    margin: 10px;
-    padding: 8px 12px;
-    background-color: var(--border);
-    color: var(--accent);
-    text-decoration: none;
-    font-size: 16px;
-    border-radius: 5px;
-    transition: background 0.3s;
-}
-
-.back-button:hover {
-    background-color: var(--muted);
 }
