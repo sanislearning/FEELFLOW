@@ -1,4 +1,4 @@
 venv/
 instance/
-moods.db
+users.db
 __pycache__/

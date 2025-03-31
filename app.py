@@ -74,7 +74,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)  # Unique
     trusted_email = db.Column(db.String(120), nullable=False)  # Not unique
-    phone = db.Column(db.String(15), unique=True, nullable=False)  # Unique
+    phone = db.Column(db.String(15), nullable=False)  # not Unique
 
 
     def setpassword(self, password):
@@ -96,9 +96,8 @@ class Mood(db.Model):
 class Academic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), db.ForeignKey('user.username'), nullable=False)
-    subject = db.Column(db.String(100), nullable=False)
-    marks = db.Column(db.Integer, nullable=False)
-    date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    sgpa = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.Date, nullable=False)
 
 
 @app.route('/')
@@ -254,32 +253,33 @@ def save_entry():
 
 
 
-
 @app.route('/academic', methods=['GET', 'POST'])
 def academic():
     if 'username' not in session:
         return redirect(url_for('index'))
-    user = session['username']
-    if request.method == 'POST':
-        subject = request.form.get('subject')
-        marks = request.form.get('marks')
-        if not subject or not marks.isdigit():
-            # flash("Invalid input. Please enter a valid subject and marks.", "error")
-            return redirect(url_for('academic'))
-        marks = int(marks)  # Convert to integer
-        today = datetime.utcnow().date()  # Get today's date
 
-        # Check if an entry already exists for this subject and date
-        existing_entry = Academic.query.filter_by(username=user, subject=subject, date=today).first()
-        if existing_entry:
-            existing_entry.marks = marks  # Update marks
-        else:
-            new_entry = Academic(username=user, subject=subject, marks=marks, date=today)
-            db.session.add(new_entry)
+    user = session['username']
+
+    if request.method == 'POST':
+        sgpa = request.form.get('sgpa')
+        date_str = request.form.get('date')  # Get date as a string
+
+        if not sgpa or not date_str:
+            return redirect(url_for('academic'))
+
+        sgpa = float(sgpa)
+        date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()  # Convert string to date
+
+        new_entry = Academic(username=user, sgpa=sgpa, date=date_obj)
+        db.session.add(new_entry)
         db.session.commit()
-        # flash("Marks updated successfully!" if existing_entry else "Marks added successfully!", "success")
+
         return redirect(url_for('academic'))
+
     return render_template('academic.html')
+
+
+
 
 
 
@@ -289,17 +289,9 @@ def get_marks_data():
         return jsonify({"error": "Unauthorized"}), 401
 
     user = session['username']
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
+    return jsonify(get_marks(user))
 
-    # Get all subjects for the user
-    cursor.execute("SELECT DISTINCT subject FROM academic WHERE username = ?", (user,))
-    subjects = [row[0] for row in cursor.fetchall()]
-    
-    conn.close()
-    # Fetch marks for each subject
-    data = {subject: get_marks(user, subject) for subject in subjects}
-    return jsonify(data)
+
 
 @app.route('/chatbot')
 def chatbot():

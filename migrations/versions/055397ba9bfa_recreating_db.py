@@ -1,8 +1,8 @@
-"""Recreating tables with new columns
+"""recreating db
 
-Revision ID: a70084ee5f4e
+Revision ID: 055397ba9bfa
 Revises: 
-Create Date: 2025-03-30 19:52:02.634483
+Create Date: 2025-03-31 15:26:42.962495
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a70084ee5f4e'
+revision = '055397ba9bfa'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -33,8 +33,7 @@ def upgrade():
     op.create_table('academic',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=80), nullable=False),
-    sa.Column('subject', sa.String(length=100), nullable=False),
-    sa.Column('marks', sa.Integer(), nullable=False),
+    sa.Column('sgpa', sa.Integer(), nullable=False),
     sa.Column('date', sa.Date(), nullable=False),
     sa.ForeignKeyConstraint(['username'], ['user.username'], ),
     sa.PrimaryKeyConstraint('id')

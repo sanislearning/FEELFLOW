@@ -38,16 +38,15 @@ def get_diary_entries(username):
     
 
 
-def get_marks(username, subject):
-    marks = []
+def get_marks(username):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
-    query = "SELECT marks, date FROM academic WHERE username = ? AND subject = ? ORDER BY date"
-    cursor.execute(query, (username, subject))
+    query = "SELECT sgpa, date FROM academic WHERE username = ? ORDER BY date"
+    cursor.execute(query, (username,))
 
-    marks = [{"marks": row[0], "date": row[1]} for row in cursor.fetchall()]
-
+    marks = [{"sgpa": row[0], "date": row[1]} for row in cursor.fetchall()]
+    
     conn.close()
-    return marks  # Return correct variable
+    return marks
 
