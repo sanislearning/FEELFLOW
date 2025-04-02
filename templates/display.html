@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            transform: scale(0.7); /* Adjust this value (e.g., 0.8 or 0.7) for more zoom-out */
+            transform-origin: top center;
+        }
+    </style>
+    
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div class="max-w-6xl mx-auto my-10 p-6 bg-white shadow-lg rounded-xl">
+
+        <h1 class="text-3xl font-bold text-center text-blue-600 mb-6">Mental Health Report</h1>
+        
+        <div class="grid grid-cols-1 gap-4">
+            <!-- Prediction Score -->
+            <div class="bg-blue-100 p-4 rounded-lg shadow">
+                <h2 class="text-xl font-semibold">Mental Health Score</h2>
+                <p class="text-2xl font-bold text-blue-700">{{ data[0][0] }}</p>
+            </div>
+            
+            <!-- Academic Marks -->
+            <div class="bg-green-100 p-4 rounded-lg shadow">
+                <h2 class="text-xl font-semibold">Recent Marks</h2>
+                <p class="text-lg">{{ data[0][1] | join(", ") }}</p>
+            </div>
+            
+            <!-- Diary Entry -->
+            <div class="bg-gray-200 p-4 rounded-lg shadow">
+                <h2 class="text-xl font-semibold">Recent Diary Entry</h2>
+                <blockquote class="italic text-gray-700 border-l-4 border-gray-500 pl-3">{{ data[0][2] }}</blockquote>
+            </div>
+            
+            <!-- Mood Ratings -->
+            <div class="bg-yellow-100 p-4 rounded-lg shadow">
+                <h2 class="text-xl font-semibold">Weekly Mood Ratings</h2>
+                <p class="text-lg">{{ data[0][3] | join(", ") }}</p>
+            </div>
+            
+            <!-- Academic Trend -->
+            <div class="bg-purple-100 p-4 rounded-lg shadow">
+                <h2 class="text-xl font-semibold">Academic Trend</h2>
+                <p class="text-lg font-bold text-purple-700">{{ data[0][4] }}</p>
+            </div>
+            
+            <!-- Weekly Average Mood -->
+            <div class="bg-pink-100 p-4 rounded-lg shadow">
+                <h2 class="text-xl font-semibold">Weekly Average Mood</h2>
+                <p class="text-lg font-bold text-pink-700">{{ data[0][5] }}</p>
+            </div>
+            
+            <!-- Sentiment Probabilities -->
+            <div class="bg-red-100 p-4 rounded-lg shadow">
+                <h2 class="text-xl font-semibold">Sentiment Analysis</h2>
+                <ul class="text-lg">
+                    <li><span class="font-bold text-red-600">Negative:</span> {{ data[0][6]["negative"] }}</li>
+                    <li><span class="font-bold text-gray-600">Neutral:</span> {{ data[0][6]["neutral"] }}</li>
+                    <li><span class="font-bold text-green-600">Positive:</span> {{ data[0][6]["positive"] }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

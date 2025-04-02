@@ -13,6 +13,7 @@ from model import predict_mental_health
 
 
 
+
 db_path = r"C:\Users\HP\Documents\Projects\FEELFLOW\instance\users.db"
 
 app = Flask(__name__)
@@ -28,6 +29,8 @@ app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.getenv('EMAIL_USER')  # Store in environment variable
 app.config['MAIL_PASSWORD'] = os.getenv('EMAIL_PASS')  # Store in environment variable
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('EMAIL_USER')  # Use the same email as MAIL_USERNAME
+
 
 mail = Mail(app)
 
@@ -219,8 +222,7 @@ def mood_rating():
             db.session.add(new_mood)
         else:
             existing_mood.mood = mood  # **Update existing mood**
-        
-        db.session.commit()
+            db.session.commit()
         return redirect(url_for('dashboard'))  # Redirect to dashboard after submitting
     return render_template('moodrating.html')  # **Always show the page**
 
@@ -264,8 +266,11 @@ def save_entry():
         else:
             mood_entry.diary_entry += f"\n{entry_text}"  # Append if it's not None
 
+
     db.session.commit()
-    predict_mental_health('username')
+    guardian_mail = get_guardian_email(user)
+    print(predict_mental_health(user))
+    print("Mental health prediction triggered after diary entry save.")
     return jsonify({"success": True, "message": "Diary entry saved!"})
 
 
@@ -297,6 +302,20 @@ def academic():
 
 
 
+# @app.route('/test_alert_email', methods=['GET'])
+# def test_alert_email():
+#     if 'username' not in session:
+#         return redirect(url_for('index'))
+
+#     username = session['username']
+#     guardian_email = get_guardian_email(username)
+
+#     if guardian_email:
+#         send_alert_email(mail, username, guardian_email)
+#         return f"Test alert email sent to {guardian_email} for {username}!"
+#     else:
+#         return url_for('index')
+
 
 
 
@@ -315,22 +334,6 @@ def chatbot():
     return render_template('chatbot.html')
 
 
-@app.route('/send-test-mail')
-def send_test_mail():
-    try:
-        msg = Message(
-            subject="Feelflow Test Email",
-            sender=os.getenv('EMAIL_USER'),
-            recipients=["jesterjuice18@gmail.com"],  # Replace with your test recipient
-            body="This is a test email from Feelflow!"
-        )
-        mail.send(msg)
-        send_alert_email('username', get_guardian_email('username'))
-        return "Email sent successfully!"
-    except Exception as e:
-        return f"Error: {e}"
-
-
 
 
 @app.route('/chat', methods=['GET','POST'])
@@ -340,7 +343,22 @@ def chat():
     return jsonify({"response": bot_response})
 
 
+
+
+
+@app.route('/display_all', methods=['GET', 'POST'])
+def display_all():
+    user = session.get("username")  # Use .get() to prevent errors if session is empty
+    if not user:
+        return "User not logged in", 403  # Prevent unauthorized access
+
+    a = [predict_mental_health(user)]
+    return render_template('display.html', data=a)
+
+
+
 if __name__ == '__main__':
+
     with app.app_context():
         db.create_all()
     app.run(debug=True)

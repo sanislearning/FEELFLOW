@@ -7,7 +7,6 @@ import urllib.request
 import csv
 from db_utils import getmarks, get_diary_entries, get_mood_ratings
 from sklearn.linear_model import LinearRegression
-
 # Load models once (reduces lag)
 model = joblib.load("feelflow_rf_model.pkl")
 
@@ -69,9 +68,16 @@ def predict_mental_health(username):
     prediction = model.predict(input_features)[0]
 
     # If prediction is negative, send an alert
-    if prediction < 0:  # Adjust the threshold if needed
+    if prediction < 0.1:  # Adjust the threshold if needed
         guardian_email = get_guardian_email(username)  # Fetch guardian's email
-        send_alert_email(username, guardian_email, prediction)
+        send_alert_email(username, guardian_email)
 
-    return prediction
+    return (prediction,
+            marks,
+            diary, 
+            mood, 
+            academic_trend, 
+            weekly_avg_rating, 
+            sentiment_probs
+            )
 
