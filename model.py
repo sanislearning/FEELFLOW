@@ -1,53 +1,23 @@
-#final output script
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
+import joblib
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from scipy.special import softmax
 import urllib.request
 import csv
+from db_utils import getmarks, get_diary_entries, get_mood_ratings
+from sklearn.linear_model import LinearRegression
 
-# Load trained model (ensure the model is trained before running this)
-model = RandomForestRegressor(n_estimators=100, random_state=42)
-model.fit(X_train, y_train)  # Ensure X_train, y_train are defined
+# Load models once (reduces lag)
+model = joblib.load("feelflow_rf_model.pkl")
 
-# Function to calculate academic trend score
-def academic_trend_score(marks):
-    if len(marks) < 2:
-        return 0  # Neutral trend if not enough data
-
-    recent_marks = marks[-4:]  # Use last 4 marks
-    X = np.arange(len(recent_marks)).reshape(-1, 1)
-    Y = np.array(recent_marks)
-
-    # Fit Linear Regression model
-    model = LinearRegression()
-    model.fit(X, Y)
-
-    # Normalize slope
-    slope = model.coef_[0]
-    max_slope = 0.5
-    normalized_slope = max(-1, min(1, slope / max_slope))
-
-    return normalized_slope
-
-# Function to compute weekly average
-def get_weekly_average(daily_ratings):
-    if len(daily_ratings) < 7:
-        return None  # Not enough data
-    return np.mean(daily_ratings[-7:])
-
-# Function for sentiment analysis
-
-
+# Load sentiment analysis model once
 task = "sentiment"
 MODEL = f"cardiffnlp/twitter-roberta-base-{task}"
 tokenizer = AutoTokenizer.from_pretrained(MODEL)
 sentiment_model = AutoModelForSequenceClassification.from_pretrained(MODEL)
 
-# Load sentiment labels
+# Fetch sentiment labels only once
 labels = []
 mapping_link = f"https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/{task}/mapping.txt"
 with urllib.request.urlopen(mapping_link) as f:
@@ -55,64 +25,53 @@ with urllib.request.urlopen(mapping_link) as f:
     csvreader = csv.reader(html, delimiter="\t")
     labels = [row[1] for row in csvreader if len(row) > 1]
 
-def get_sentiment_probabilities(text):
-    encoded_input = tokenizer(text, return_tensors="pt")
+def academic_trend_score(marks):
+    if len(marks) < 2:
+        return 0  
+    recent_marks = marks[-4:]  
+    X = np.arange(len(recent_marks)).reshape(-1, 1)
+    Y = np.array(recent_marks)
+    amodel = LinearRegression()
+    amodel.fit(X, Y)
+    slope = amodel.coef_[0]
+    return max(-1, min(1, slope / 0.5))  
+
+def get_weekly_average(daily_ratings, default=7):
+    if len(daily_ratings) < 7:
+        return 7  
+    return np.mean(daily_ratings[-7:])
+
+def get_sentiment_probabilities(text, default="I had a normal day today"):
+    if not text:
+        text = default  # Use the default text when input is missing
+    encoded_input = tokenizer(text, return_tensors="pt", padding=True)
     output = sentiment_model(**encoded_input)
-    scores = output[0][0].detach().numpy()
-    scores = softmax(scores)  # Convert to probabilities
+    scores = softmax(output[0][0].detach().numpy())
+    return {label: scores[i] for i, label in enumerate(labels)}
 
-    return {
-        "negative": scores[labels.index("negative")],
-        "neutral": scores[labels.index("neutral")],
-        "positive": scores[labels.index("positive")]
-    }
 
-# User Input Loop
-while True:
-    print("\n📝 Enter your data:")
+from db_utils import send_alert_email  # We will create this function next
+from db_utils import get_guardian_email  # Make sure you have this function
 
-    # User inputs academic marks
-    marks = list(map(float, input("Enter your last 4 academic marks (comma-separated): ").split(",")))
+def predict_mental_health(username):
+    marks = getmarks(username)
+    diary = get_diary_entries(username)
+    mood = get_mood_ratings(username)
+
     academic_trend = academic_trend_score(marks)
+    weekly_avg_rating = get_weekly_average(mood)
+    sentiment_probs = get_sentiment_probabilities(diary)
 
-    # User inputs daily ratings
-    daily_ratings = list(map(int, input("Enter your last 7 daily ratings (comma-separated, 1-10): ").split(",")))
-    weekly_avg_rating = get_weekly_average(daily_ratings)
-    if weekly_avg_rating is None:
-        print("⚠️ Not enough daily ratings. You need at least 7.")
-        continue
+    input_features = pd.DataFrame([[academic_trend, weekly_avg_rating, 
+                                    sentiment_probs["negative"], sentiment_probs["neutral"], sentiment_probs["positive"]]],  
+                                  columns=["academic_trend", "weekly_average_rating", "negative_prob", "neutral_prob", "positive_prob"])
 
-    # User inputs journal entry
-    journal_entry = input("Enter your journal entry: ")
-    sentiment_probs = get_sentiment_probabilities(journal_entry)
+    prediction = model.predict(input_features)[0]
 
-    # Create DataFrame for prediction
-    user_data = pd.DataFrame([[
-        academic_trend,
-        weekly_avg_rating,
-        sentiment_probs["negative"],
-        sentiment_probs["neutral"],
-        sentiment_probs["positive"]
-    ]], columns=["academic_trend", "weekly_average_rating", "negative_prob", "neutral_prob", "positive_prob"])
+    # If prediction is negative, send an alert
+    if prediction < 0:  # Adjust the threshold if needed
+        guardian_email = get_guardian_email(username)  # Fetch guardian's email
+        send_alert_email(username, guardian_email, prediction)
 
-    # Predict mental state
-    predicted_score = model.predict(user_data)[0]
-    print(f"\n🧠 Predicted Mental State Score: {predicted_score:.4f}")
+    return prediction
 
-    # Ask to continue or exit
-    choice = input("Would you like to enter another set of data? (yes/no): ").strip().lower()
-    if choice != "yes":
-        print("👋 Exiting...")
-        break
-
-# Final Score Range: -1 to +1
-# +0.7 to +1.0 → Excellent Mental State 😊
-# High academic trends, good daily ratings, and positive sentiment.
-# +0.3 to +0.6 → Good Mental State 🙂
-# Balanced lifestyle, moderate daily ratings, and mixed but positive sentiment.
-# -0.2 to +0.2 → Neutral Mental State 😐
-# Average academic performance, fluctuating daily ratings, and neutral sentiment.
-# -0.6 to -0.3 → Poor Mental State 😞
-# Low daily ratings, signs of stress or mixed emotions in journal entries.
-# -1.0 to -0.7 → Critical Mental State 😔
-# Low academic performance, negative journal entries, and low daily ratings.

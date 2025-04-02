@@ -5,7 +5,13 @@ from datetime import datetime, timedelta
 from flask import flash
 from flask_migrate import Migrate
 import sqlite3, requests
-from db_utils import get_marks
+from db_utils import get_marks, send_alert_email, get_guardian_email
+from dotenv import load_dotenv
+from flask_mail import Mail,Message
+import os
+from model import predict_mental_health
+
+
 
 db_path = r"C:\Users\HP\Documents\Projects\FEELFLOW\instance\users.db"
 
@@ -15,6 +21,16 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv('EMAIL_USER')  # Store in environment variable
+app.config['MAIL_PASSWORD'] = os.getenv('EMAIL_PASS')  # Store in environment variable
+
+mail = Mail(app)
+
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -249,6 +265,7 @@ def save_entry():
             mood_entry.diary_entry += f"\n{entry_text}"  # Append if it's not None
 
     db.session.commit()
+    predict_mental_health('username')
     return jsonify({"success": True, "message": "Diary entry saved!"})
 
 
@@ -296,6 +313,23 @@ def get_marks_data():
 @app.route('/chatbot')
 def chatbot():
     return render_template('chatbot.html')
+
+
+@app.route('/send-test-mail')
+def send_test_mail():
+    try:
+        msg = Message(
+            subject="Feelflow Test Email",
+            sender=os.getenv('EMAIL_USER'),
+            recipients=["jesterjuice18@gmail.com"],  # Replace with your test recipient
+            body="This is a test email from Feelflow!"
+        )
+        mail.send(msg)
+        send_alert_email('username', get_guardian_email('username'))
+        return "Email sent successfully!"
+    except Exception as e:
+        return f"Error: {e}"
+
 
 
 
