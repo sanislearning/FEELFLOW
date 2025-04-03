@@ -25,7 +25,7 @@ with urllib.request.urlopen(mapping_link) as f:
     labels = [row[1] for row in csvreader if len(row) > 1]
 
 def academic_trend_score(marks):
-    if len(marks) < 2:
+    if len(marks) < 3:
         return 0  
     recent_marks = marks[-4:]  
     X = np.arange(len(recent_marks)).reshape(-1, 1)

@@ -19,6 +19,8 @@ db_path = r"C:\Users\HP\Documents\Projects\FEELFLOW\instance\users.db"
 app = Flask(__name__)
 
 
+
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -47,7 +49,7 @@ SYSTEM_MESSAGE = {
     "role": "system",
     "content": (
         "You are Lumi, a supportive companion for people to talk to. "
-        "You will listen and provide advice in a clear and concise manner. "
+        "You will listen and provide advice in a clear and concise manner. Do not reply with more than 4 sentences."
         "Your responses should be friendly, empathetic, and restricted to around two paragraphs in length."
         "If a response can be made in a single paragraph, do so."
     )
@@ -127,6 +129,7 @@ def index():
         return render_template('index.html')  # This renders the index page
 
 
+
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -156,10 +159,10 @@ def dashboard():
     today = datetime.utcnow().date()
     
     # Check if mood entry exists for today
-    existing_mood = Mood.query.filter_by(username=user, date=today).first()
+    # existing_mood = Mood.query.filter_by(username=user, date=today).first()
     
-    if not existing_mood:
-        return redirect(url_for('mood_rating'))  # Redirect to mood entry page if missing
+    # if not existing_mood:
+    #     return redirect(url_for('mood_rating'))  # Redirect to mood entry page if missing
     return render_template('dashboard.html', username=user)
 
 
@@ -184,8 +187,10 @@ def register():
         # Create new user
         new_user = User(username=username, email=email, trusted_email=trusted_email, phone=phone)
         new_user.setpassword(password)
+        new_moood = Mood(username=username, date=datetime.utcnow().date(), mood=10, diary_entry="first journal")  # Default mood
         
         db.session.add(new_user)
+        db.session.add(new_moood)  # Add the mood entry for the new user
         db.session.commit()
 
         flash("Registration successful! Please log in.", "success")
@@ -355,10 +360,13 @@ def display_all():
     a = [predict_mental_health(user)]
     return render_template('display.html', data=a)
 
-
+def clear_session():
+    global session_cleared
+    if not session_cleared:
+        session.clear()
+        session_cleared = True
 
 if __name__ == '__main__':
-
     with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+        app.run(debug=True)
+
