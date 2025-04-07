@@ -21,7 +21,7 @@ Feelflow is a smart journaling app that helps users track their emotions, analyz
 ### 1️⃣ Installation
 ```sh
 # Clone the repository
-git clone https://github.com/yourusername/feelflow.git
+git clone https://github.com/diyaziyad/feelflow.git
 cd feelflow
 
 # Create a virtual environment
@@ -47,7 +47,7 @@ The app should now be running on `http://localhost:5000`.
 feelflow/
 │── static/         # Frontend assets
 │── templates/      # HTML templates
-│── database.db     # SQLite database
+│── users.db        # SQLite database
 │── app.py         # Main Flask application
 │── requirements.txt # Dependencies
 ```
